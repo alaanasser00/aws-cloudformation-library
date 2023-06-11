@@ -4,7 +4,7 @@ This CloudFormation template deploys a highly available Virtual Private Cloud (V
 
 ## Architecture Overview
 
-![Highly Available VPC for a Three-Tier Architecture](./images/architecture.png)
+![Highly Available VPC for a Three-Tier Architecture](./architecture.png)
 
 The CloudFormation template provisions the following resources:
 
