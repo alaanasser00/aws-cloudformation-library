@@ -64,18 +64,30 @@ Resources:
       InternetGatewayId: !Ref InternetGateway
 
   # NAT Gateway EIPs
-  NatGatewayEIP:
+  NatGatewayEIPA:
     Type: AWS::EC2::EIP
     DependsOn: InternetGatewayAttachment
     Properties:
       Domain: vpc
 
-  # NAT Gateway
-  NatGateway:
+  NatGatewayEIPB:
+    Type: AWS::EC2::EIP
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      Domain: vpc
+
+  # NAT Gateways
+  NatGatewayA:
     Type: AWS::EC2::NatGateway
     Properties:
-      AllocationId: !GetAtt NatGatewayEIP.AllocationId
+      AllocationId: !GetAtt NatGatewayEIPA.AllocationId
       SubnetId: !Ref WebSubnetA
+      
+  NatGatewayB:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGatewayEIPB.AllocationId
+      SubnetId: !Ref WebSubnetB
 
 
   # Subnets AZ-A
@@ -151,35 +163,67 @@ Resources:
         - Key: Name
           Value: !Sub ${EnvironmentName}_WebRT
 
-  AppRouteTable:
+  AppRouteTableA:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: !Sub ${EnvironmentName}_AppRT
+          Value: !Sub ${EnvironmentName}_AppRT_AZA
 
-  DBRouteTable:
+  AppRouteTableB:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: !Sub ${EnvironmentName}_DBRT
+          Value: !Sub ${EnvironmentName}_AppRT_AZB
 
-  AppSubnetRoute:
+  DBRouteTableA:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}_DBRT_AZA
+
+  DBRouteTableB:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}_DBRT_AZB
+
+  # Routes
+  
+  AppSubnetARoute:
     Type: AWS::EC2::Route
     Properties:
-      RouteTableId: !Ref AppRouteTable
+      RouteTableId: !Ref AppRouteTableA
       DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NatGateway
+      NatGatewayId: !Ref NatGatewayA
 
-  DBSubnetRoute:
+  AppSubnetBRoute:
     Type: AWS::EC2::Route
     Properties:
-      RouteTableId: !Ref DBRouteTable
+      RouteTableId: !Ref AppRouteTableB
       DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NatGateway
+      NatGatewayId: !Ref NatGatewayB
+
+  DBSubnetARoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref DBRouteTableA
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGatewayB
+
+  DBSubnetBRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref DBRouteTableB
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGatewayB
 
   WebSubnetRouteTableAssociationA:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -193,37 +237,40 @@ Resources:
       RouteTableId: !Ref WebRouteTable
       SubnetId: !Ref WebSubnetB
 
-  AppSubnetARouteTableAssociation:
+  AppSubnetRouteTableAssociationA:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: !Ref AppRouteTable
+      RouteTableId: !Ref AppRouteTableA
       SubnetId: !Ref AppSubnetA
 
-  AppSubnetBRouteTableAssociation:
+  AppSubnetRouteTableAssociationB:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: !Ref AppRouteTable
+      RouteTableId: !Ref AppRouteTableB
       SubnetId: !Ref AppSubnetB
 
-  DBSubnetARouteTableAssociation:
+  DBSubnetRouteTableAssociationA:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: !Ref DBRouteTable
+      RouteTableId: !Ref DBRouteTableA
       SubnetId: !Ref DBSubnetA
 
-  DBSubnetBRouteTableAssociation:
+  DBSubnetRouteTableAssociationB:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: !Ref DBRouteTable
+      RouteTableId: !Ref DBRouteTableB
       SubnetId: !Ref DBSubnetB
 
 Outputs:
   VPC:
     Description: VPC
     Value: !Ref VPC
-  NATGateway:
-    Description: NAT Gateway
-    Value: !Ref NatGateway
+  NATGatewayA:
+    Description: NAT Gateway A
+    Value: !Ref NatGatewayA
+  NATGatewayB:
+    Description: NAT Gateway B
+    Value: !Ref NatGatewayB
   AvailabilityZoneA:
     Description: Availability Zone A
     Value: !GetAtt WebSubnetA.AvailabilityZone
