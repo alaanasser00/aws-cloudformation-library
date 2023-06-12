@@ -2,6 +2,9 @@
 
 This CloudFormation template deploys a highly available Virtual Private Cloud (VPC) for a three-tier architecture in AWS.
 
+For more detailed instructions and insights on this CloudFormation template, refer to the accompanying Medium article: [Link to Medium Article](https://medium.com/your-article)
+
+
 ## Architecture Overview
 
 ![Highly Available VPC for a Three-Tier Architecture](./architecture.png)
